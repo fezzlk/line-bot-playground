@@ -6,7 +6,7 @@ const KEY = "line-bot-playground:ui";
 
 export interface UiPrefs {
   botId?: string;
-  conversationId?: string;
+  groupId?: string;
   userId?: string;
 }
 

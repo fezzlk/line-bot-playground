@@ -1,37 +1,25 @@
 import { useEffect, useRef } from "react";
-import type { TimelineEntry, UserAction, VirtualUser } from "../../shared/types.ts";
+import type { PlaygroundLogEntry, PlaygroundUser } from "../../shared/types.ts";
 import { renderMessage, type Tappable } from "./lineMessages.ts";
 
 interface Props {
-  entries: TimelineEntry[];
-  users: VirtualUser[];
+  entries: PlaygroundLogEntry[];
+  users: PlaygroundUser[];
   onTap: (tappable: Tappable) => void;
-}
-
-function userActionText(action: UserAction): string {
-  switch (action.type) {
-    case "text":
-      return action.text;
-    case "image":
-      return "";
-    case "postback":
-      return action.displayText ?? `［postback］${action.data}`;
-    case "join":
-      return "［bot をこのグループに追加］";
-    case "memberJoined":
-      return "［グループに参加］";
-    case "follow":
-      return "［bot を友だち追加］";
-  }
 }
 
 function time(at: number): string {
   return new Date(at).toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
 }
 
+/**
+ * The allowed group's recent conversation as the plugin logged it. Deliberately
+ * plain: the real check happens in the LINE app; this view is for tapping the
+ * bot's buttons as a fictional user.
+ */
 export function Timeline({ entries, users, onTap }: Props) {
   const end = useRef<HTMLDivElement>(null);
-  const nameOf = (id?: string) => users.find((u) => u.id === id)?.name ?? "（不明なユーザー）";
+  const nameOf = (id: string) => users.find((u) => u.userId === id)?.name ?? "LINE のユーザー";
 
   useEffect(() => {
     end.current?.scrollIntoView({ block: "end" });
@@ -40,65 +28,43 @@ export function Timeline({ entries, users, onTap }: Props) {
   if (entries.length === 0) {
     return (
       <div className="timeline empty">
-        <p>まだ何もありません。下の入力欄から、選んだユーザーとしてメッセージを送ってください。</p>
-        <p>グループに bot がいる前提の bot なら、まず「…」メニューの「bot を追加（join）」を送ると自然です。</p>
+        <p>まだ記録がありません。LINE アプリでグループに話しかけるか、下から架空のユーザーとして送ってください。</p>
       </div>
     );
   }
 
   return (
     <div className="timeline">
-      {entries.map((entry) => {
-        if (entry.kind === "system") {
+      {entries.map((entry, index) => {
+        const key = `${entry.at}-${index}`;
+        if (entry.kind === "real" || entry.kind === "fictional") {
           return (
-            <div key={entry.id} className={`system ${entry.level}`}>
-              <span className="time">{time(entry.at)}</span> {entry.text}
-            </div>
-          );
-        }
-        if (entry.kind === "user") {
-          const isEvent = ["join", "memberJoined", "follow"].includes(entry.action.type);
-          return (
-            <div key={entry.id} className={`row user${isEvent ? " event" : ""}`}>
+            <div key={key} className={`row user ${entry.kind}`}>
               <div className="meta">
-                {nameOf(entry.userId)} <span className="time">{time(entry.at)}</span>
+                {entry.kind === "fictional" ? `🧪${entry.name}` : "LINE のユーザー（本物）"}{" "}
+                <span className="time">{time(entry.at)}</span>
               </div>
-              <div className={`bubble${entry.action.type === "postback" ? " postback" : ""}`}>
-                {entry.imageUrl ? <img src={entry.imageUrl} alt="送った画像" /> : userActionText(entry.action)}
-              </div>
+              <div className="bubble">{entry.text}</div>
             </div>
           );
         }
-        const via = entry.via === "reply" ? `${nameOf(entry.replyTo)}への返信` : entry.via;
         return (
-          <div key={entry.id} className="row bot">
+          <div key={key} className="row bot">
             <div className="meta">
-              bot <span className="via">{via}</span> <span className="time">{time(entry.at)}</span>
+              bot <span className="via">{nameOf(entry.replyTo)}への返信</span> <span className="time">{time(entry.at)}</span>
             </div>
             {entry.messages.map((message, i) => {
               const r = renderMessage(message);
+              const tappables = [...r.buttons, ...r.quickReplies];
               return (
                 <div key={i} className="bubble">
                   {r.texts.map((t, j) => (
                     <p key={j}>{t}</p>
                   ))}
-                  {r.images.map((src, j) => (
-                    <a key={j} href={src} target="_blank" rel="noreferrer">
-                      <img src={src} alt="bot の画像" />
-                    </a>
-                  ))}
-                  {r.buttons.length > 0 && (
-                    <div className="buttons">
-                      {r.buttons.map((b, j) => (
-                        <button key={j} type="button" onClick={() => onTap(b)}>
-                          {b.label}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                  {r.quickReplies.length > 0 && (
+                  {r.images.length > 0 && <p className="note">［画像 {r.images.length} 枚。LINE アプリで確認してください］</p>}
+                  {tappables.length > 0 && (
                     <div className="chips inline">
-                      {r.quickReplies.map((b, j) => (
+                      {tappables.map((b, j) => (
                         <button key={j} type="button" className="chip" onClick={() => onTap(b)}>
                           {b.label}
                         </button>

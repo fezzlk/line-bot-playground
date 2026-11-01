@@ -1,4 +1,4 @@
-import type { LineMessage, UserAction } from "../../shared/types.ts";
+import type { LineMessage, PlaygroundAction } from "../../shared/types.ts";
 
 // Turns the LINE message objects a bot sent into something the UI can show:
 // text lines, images, and the tappable actions (buttons, quick replies).
@@ -132,9 +132,9 @@ export function renderMessage(message: LineMessage): RenderedMessage {
 }
 
 export type ActionOutcome =
-  | { kind: "send"; action: UserAction }
+  | { kind: "send"; action: PlaygroundAction }
   | { kind: "open"; url: string }
-  | { kind: "needsInput"; prompt: string; complete: (value: string) => UserAction }
+  | { kind: "needsInput"; prompt: string; complete: (value: string) => PlaygroundAction }
   | { kind: "unsupported"; reason: string };
 
 /** What tapping a LINE action does, as the user who tapped it. */

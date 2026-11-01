@@ -1,29 +1,23 @@
 # Copy to bots.local.yaml (git-ignored) and fill in your bots.
 #   cp bots.example.yaml bots.local.yaml
 #
+# Each bot must have the playground plugin enabled (see docs/protocol.md).
+#
 # Fields
-#   id               unique key (letters, digits, dashes)
-#   name             label shown in the UI (defaults to id)
-#   mode             "mock" (bot calls this playground's mock LINE API; replies are shown)
-#                    or "production" (events are injected only; replies go nowhere visible)
-#   webhookUrl       the bot's webhook endpoint
-#   channelSecret    the bot's channel secret, used to sign webhook bodies
-#   channelSecretEnv alternative to channelSecret: name of an environment variable holding it
-#   mockAccessToken  mock mode only: any string; set the bot's channel access token to the same value
-#   botUserId        optional: the webhook "destination" (the bot's user ID)
+#   id        unique key (letters, digits, dashes)
+#   name      label shown in the UI (defaults to id)
+#   baseUrl   the bot server's base URL; the plugin lives under <baseUrl>/playground
+#   token     the bot's PLAYGROUND_TOKEN
+#   tokenEnv  alternative to token: name of an environment variable holding it
 
 bots:
-  # A bot running locally with its LINE API base URL pointed at this playground.
-  - id: my-bot-local
-    name: my-bot（ローカル・検証）
-    mode: mock
-    webhookUrl: http://host.docker.internal:8080/callback
-    channelSecret: local-test-secret
-    mockAccessToken: playground-my-bot
+  - id: my-bot
+    name: my-bot（本番）
+    baseUrl: https://my-bot-xxxxxxxx-an.a.run.app
+    tokenEnv: MY_BOT_PLAYGROUND_TOKEN
 
-  # A deployed bot. Only injection works; the bot's replies to fictional users are rejected by LINE.
-  # - id: my-bot-prod
-  #   name: my-bot（本番）
-  #   mode: production
-  #   webhookUrl: https://example.com/callback
-  #   channelSecretEnv: MY_BOT_CHANNEL_SECRET
+  # A bot running on this Mac, reached from inside docker compose.
+  # - id: my-bot-local
+  #   name: my-bot（ローカル）
+  #   baseUrl: http://host.docker.internal:8080
+  #   token: local-playground-token

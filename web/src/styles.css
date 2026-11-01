@@ -238,15 +238,6 @@ header {
   background: var(--user-bubble);
   color: var(--user-text);
 }
-.row.user .bubble.postback {
-  outline: 2px dashed rgb(255 255 255 / 0.6);
-  outline-offset: -4px;
-}
-.row.user.event .bubble {
-  background: var(--surface);
-  color: var(--muted);
-  font-size: 13px;
-}
 .bubble img {
   display: block;
   max-width: 100%;
@@ -365,4 +356,20 @@ form button[type="submit"] {
 form button[type="submit"]:disabled {
   opacity: 0.4;
   cursor: default;
+}
+
+.row.user.real {
+  align-self: flex-start;
+  align-items: flex-start;
+}
+.row.user.real .bubble {
+  background: var(--surface);
+  color: var(--text);
+}
+.note {
+  font-size: 12px;
+  color: var(--muted);
+}
+.banner code {
+  overflow-wrap: anywhere;
 }
