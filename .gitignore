@@ -1,0 +1,9 @@
+node_modules/
+dist/
+coverage/
+.env
+.env.*
+!.env.example
+# Holds real channel secrets. Never commit it.
+bots.local.yaml
+.DS_Store
