@@ -1,0 +1,40 @@
+services:
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    command: ["npx", "tsx", "watch", "server/index.ts"]
+    ports:
+      - "8787:8787"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    # Optional: tokens referenced by tokenEnv in bots.local.yaml (git-ignored).
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      BOTS_CONFIG: /app/bots.local.yaml
+      # File events from macOS bind mounts don't reach tsx's watcher; poll instead.
+      CHOKIDAR_USEPOLLING: "1"
+    # Lets the controller reach bots running on this Mac (http://host.docker.internal:8080).
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    command: ["npx", "vite"]
+    ports:
+      - "5173:5173"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      API_TARGET: http://server:8787
+      CHOKIDAR_USEPOLLING: "1"
+    depends_on:
+      - server
+    restart: unless-stopped

@@ -1,0 +1,39 @@
+{
+  "name": "line-bot-playground",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Drive LINE bots as multiple fictional users from a web UI: signed webhook injection plus a mock LINE Messaging API.",
+  "engines": {
+    "node": ">=20.19"
+  },
+  "scripts": {
+    "dev": "concurrently -n server,web \"npm:dev:server\" \"npm:dev:web\"",
+    "dev:server": "tsx watch server/index.ts",
+    "dev:web": "vite",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "build": "vite build",
+    "start": "NODE_ENV=production tsx server/index.ts"
+  },
+  "dependencies": {
+    "@hono/node-server": "^2.1.5",
+    "hono": "^4.10.4",
+    "tsx": "^4.20.6",
+    "yaml": "^2.8.1"
+  },
+  "devDependencies": {
+    "@line/bot-sdk": "^10.3.0",
+    "@types/node": "^20.19.0",
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
+    "@vitejs/plugin-react": "^5.1.0",
+    "concurrently": "^9.2.1",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "typescript": "^5.9.3",
+    "vite": "^7.1.12",
+    "vitest": "^4.1.12"
+  }
+}

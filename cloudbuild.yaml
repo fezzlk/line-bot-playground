@@ -1,0 +1,43 @@
+# Triggered by pushes to main (one Cloud Build trigger). Deploys the controller to
+# Cloud Run in asia-northeast1 behind IAP (Google login).
+steps:
+  - id: build
+    name: "gcr.io/cloud-builders/docker"
+    args:
+      - "build"
+      - "-t"
+      - "asia-northeast1-docker.pkg.dev/$PROJECT_ID/line-bot-playground/controller:$COMMIT_SHA"
+      - "."
+
+  - id: push
+    name: "gcr.io/cloud-builders/docker"
+    args:
+      - "push"
+      - "asia-northeast1-docker.pkg.dev/$PROJECT_ID/line-bot-playground/controller:$COMMIT_SHA"
+
+  - id: deploy
+    name: "gcr.io/google.com/cloudsdktool/cloud-sdk:slim"
+    entrypoint: "gcloud"
+    args:
+      - "run"
+      - "deploy"
+      - "line-bot-playground"
+      - "--image=asia-northeast1-docker.pkg.dev/$PROJECT_ID/line-bot-playground/controller:$COMMIT_SHA"
+      - "--region=asia-northeast1"
+      - "--memory=512Mi"
+      - "--cpu=1"
+      - "--min-instances=0"
+      - "--max-instances=2"
+      # Only reachable through IAP; access is granted per Google account (README).
+      - "--no-allow-unauthenticated"
+      - "--iap"
+      - "--service-account=line-bot-playground-run@$PROJECT_ID.iam.gserviceaccount.com"
+      # bots.local.yaml-shaped config with tokens, kept in Secret Manager (README).
+      - "--update-secrets=/secrets/bots.yaml=bots-config:latest"
+      - "--update-env-vars=BOTS_CONFIG=/secrets/bots.yaml"
+
+images:
+  - "asia-northeast1-docker.pkg.dev/$PROJECT_ID/line-bot-playground/controller:$COMMIT_SHA"
+
+options:
+  logging: CLOUD_LOGGING_ONLY
