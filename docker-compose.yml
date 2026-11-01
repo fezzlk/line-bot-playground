@@ -1,0 +1,34 @@
+services:
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    command: ["npx", "tsx", "watch", "server/index.ts"]
+    ports:
+      - "8787:8787"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      BOTS_CONFIG: /app/bots.local.yaml
+    # Lets the server reach bots running on the host (e.g. http://host.docker.internal:8080/callback).
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    command: ["npx", "vite"]
+    ports:
+      - "5173:5173"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      API_TARGET: http://server:8787
+      CHOKIDAR_USEPOLLING: "1"
+    depends_on:
+      - server
+    restart: unless-stopped

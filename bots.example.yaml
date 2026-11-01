@@ -1,0 +1,29 @@
+# Copy to bots.local.yaml (git-ignored) and fill in your bots.
+#   cp bots.example.yaml bots.local.yaml
+#
+# Fields
+#   id               unique key (letters, digits, dashes)
+#   name             label shown in the UI (defaults to id)
+#   mode             "mock" (bot calls this playground's mock LINE API; replies are shown)
+#                    or "production" (events are injected only; replies go nowhere visible)
+#   webhookUrl       the bot's webhook endpoint
+#   channelSecret    the bot's channel secret, used to sign webhook bodies
+#   channelSecretEnv alternative to channelSecret: name of an environment variable holding it
+#   mockAccessToken  mock mode only: any string; set the bot's channel access token to the same value
+#   botUserId        optional: the webhook "destination" (the bot's user ID)
+
+bots:
+  # A bot running locally with its LINE API base URL pointed at this playground.
+  - id: my-bot-local
+    name: my-bot（ローカル・検証）
+    mode: mock
+    webhookUrl: http://host.docker.internal:8080/callback
+    channelSecret: local-test-secret
+    mockAccessToken: playground-my-bot
+
+  # A deployed bot. Only injection works; the bot's replies to fictional users are rejected by LINE.
+  # - id: my-bot-prod
+  #   name: my-bot（本番）
+  #   mode: production
+  #   webhookUrl: https://example.com/callback
+  #   channelSecretEnv: MY_BOT_CHANNEL_SECRET
