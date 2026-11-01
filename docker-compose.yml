@@ -11,6 +11,8 @@ services:
       - /app/node_modules
     environment:
       BOTS_CONFIG: /app/bots.local.yaml
+      # File events from macOS bind mounts don't reach tsx's watcher; poll instead.
+      CHOKIDAR_USEPOLLING: "1"
     # Lets the server reach bots running on the host (e.g. http://host.docker.internal:8080/callback).
     extra_hosts:
       - "host.docker.internal:host-gateway"
