@@ -7,6 +7,7 @@ const apiTarget = process.env.API_TARGET ?? "http://localhost:8787";
 export default defineConfig({
   root: "web",
   plugins: [react()],
+  build: { outDir: "../dist/web", emptyOutDir: true },
   server: {
     host: true,
     port: 5173,

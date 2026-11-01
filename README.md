@@ -44,6 +44,30 @@ docker compose up
 
 トークンをファイルに直接書きたくない場合は、`tokenEnv` に環境変数の名前を書き、値を `.env`（git 管理外）に置きます。docker を使わない場合は、`npm install && npm run dev` で起動できます。どちらの方法でも、ソースを変えるとその場で反映されます。
 
+## Cloud Run に置く場合（外出先のスマホから使う）
+
+作者の環境では、GCP プロジェクト `line-bot-playground-fez` の Cloud Run（asia-northeast1）で動かしています。
+
+- **認証**: Cloud Run の IAP（Google ログイン）を使います。許可した Google アカウントだけが画面を開けます。アプリに認証のコードはありません
+- **設定**: `bots.local.yaml` と同じ形の YAML を Secret Manager の `bots-config` に置き、`/secrets/bots.yaml` としてマウントします。トークンは YAML に直接書きます
+- **デプロイ**: main へ push すると、Cloud Build のトリガーが `cloudbuild.yaml` でビルドしてデプロイします。トリガーは 1 つだけです
+
+設定を変えるときは、新しい版を追加してから、新しいリビジョンを作ります（マウントしたシークレットは `latest` を参照しているため）。
+
+```sh
+gcloud secrets versions add bots-config --project=line-bot-playground-fez --data-file=bots.yaml
+gcloud run services update line-bot-playground --project=line-bot-playground-fez \
+  --region=asia-northeast1 --update-env-vars=CONFIG_UPDATED_AT=$(date +%s)
+```
+
+アクセスできる人を追加するとき:
+
+```sh
+gcloud iap web add-iam-policy-binding --project=line-bot-playground-fez \
+  --member=user:someone@example.com --role=roles/iap.httpsResourceAccessor \
+  --region=asia-northeast1 --resource-type=cloud-run --service=line-bot-playground
+```
+
 ## 使い方
 
 1. 上で bot とテスト用グループを選ぶ
@@ -61,7 +85,7 @@ docker compose up
 
 - `bots.local.yaml` と `.env` は `.gitignore` に入っています。コミットしないでください
 - トークンはコントローラーのサーバーだけが持ち、画面には送りません
-- コントローラーはローカル専用です。5173 番と 8787 番のポートをインターネットに公開しないでください
+- ローカルで動かすときは、5173 番と 8787 番のポートをインターネットに公開しないでください。外から使うときは、上の Cloud Run の構成のように認証を付けてください
 - プラグインを有効にした bot では、トークンを持つ人が許可したグループで代理発言できます。`PLAYGROUND_ALLOWED_GROUPS` には、本物の参加者がいないテスト用グループだけを入れてください
 
 ## 開発
